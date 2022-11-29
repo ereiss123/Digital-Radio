@@ -22,3 +22,48 @@
 *	
 *
 ===================================================================================================*/
+
+void I2C_init(){
+	uint32_t OwnAddress = 0x52;
+	RCC->APB1ENR1 |= RCC_APB1ENR_I2C3EN;	//enable clock for I2C3
+	
+	RCC->CCIPR &= ~RCC_CCIPR_I2C3SEL;
+	RCC->CCIPR |= RCC_CCIPR_I2C3SEL_0; 	//enable sysclock for I2C3
+	RCC->APB1RSTR1 |= RCC_APB1RSTR1_I2C3RST;	//1 reset I2C3
+	RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_I2C3RST;	//Finish reset
+	
+	//When the I2C is disabled (PE=0), 
+	I2C3->CR1 &= ~NI2C_CR1_PE;	//Disable I2C 	
+	I2C3->CR1 &= ~NI2C_CR1_ANFOFF; 	//0: Analog noise filter enabled
+	I2C3->CR1 &= ~NI2C_CR1_DNF; 	//0000:Digital Filter Disabled
+	I2C3->CR1 |= I2C_CR1_ERRIE; 	//errors interrupt enable
+	I2C3->CR1 &= ~NI2C_CR1_SMBUS; 	//SMBus Mode: 0 = I2C mode; 1 = SMBus Mode
+	I2C3->CR1 &= ~NI2C_CR1_NOSTRETCH; 	//Enable Clock stretching
+	
+	//I2C Timing Register
+	/*	Need to change these value for our sparkfun tuner*/
+	
+	I2C3->TIMINGR = 0; 			
+	I2C3->TIMINGR &= ~I2C_TIMINGR_PRESC; // Clear the prescaler 
+	I2C3->TIMINGR |= 7U << 28; // Set clock prescaler to 7 
+	I2C3->TIMINGR |= 49U; // SCLL: SCL Low period (master mode) > 4.7 us 
+	I2C3->TIMINGR |= 49U << 8; // SCLH: SCL high period (master mode) > 4.0 us 
+	I2C3->TIMINGR |= 14U << 20; // SCLDEL: Data setup time > 1.e us 
+	I2C3->TIMINGR |= 15U << 16; // SDADEL: Data hold time > 1.25 us
+
+	//I2C Own Address Register
+	I2C3->OAR1 &= ~I2C_OAR1_0A1EN; 
+	I2C3->OAR1 = I2C_OAR1_0A1EN | OwnAddr; // 7-bit own address 
+	I2C3->OAR1 &= ~I2C_OAR2_0A2EN; // Disable own address 2 
+	
+	//I2C CR2 configuration
+	I2C3->CR2 &= ~I2C_CR2_ADD10;	//0 = 7-bit mode: 1 = 10-bit mode 
+	I2C3->CR2 |= I2C_CR2_AUTOEND; 	//Enable the auto end
+	I2C3->CR2 |= I2C_CR2_NACK; 		//For slave mode: set NACK
+	I2C3->CR1 |= I2C_CR1_PE; 		//Enable I2C
+}
+
+void I2C_start(){
+		
+}
+
