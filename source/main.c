@@ -63,7 +63,29 @@ void I2C_init(){
 	I2C3->CR1 |= I2C_CR1_PE; 		//Enable I2C
 }
 
-void I2C_start(){
-		
+void I2C_start(I2C_TypeDef * I2Cx, uint32_t DevAddress, uint8_t Size, uint8_t Direction){
+	uint32_t tmpreg = I2Cx->CR2;
+	tmpreg &= (uint32_t) ~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+	if(direction == READ_FROM_SLAVE){
+		tmpreg |= I2C_CR2_RD_WRN;
+	} else {
+		tmpreg &= ~I2C_CR2_RD_WRN;		
+	}
+	tmpreg |= (uint32_t)(((uint32_t) DevAddress & I2C_CR2_SADD) | (((uint32_t) Size << 16) & I2C_CR2_NBYTES));
+	tmpreg |= I2C_CR2_START;
+	I2Cx->CR2 = tmpreg;
+}
+
+void I2C_Stop(I2C_TypeDef * I2Cx){ 
+//Master: Generate STOP bit after the current byte has been transferred 
+I2Cx->CR2 |= I2C_CR2_STOP; 
+//Wait until STOPF flag is reset 
+while( (I2Cx->ISR & I2C_ISR_STOPF) == 0 ); 
+I2Cx->ICR |= I2C_ICR_STOPCF; //Write 1 to clear STOPF flag 
+}
+
+void I2C_Waitlineidle(I2C_TypeDef * I2Cx){ 
+//Wait until I2C bus is ready 
+while( (I2Cx->ISR & I2C_ISR_BUSY) == I2C_ISR_BUSY ); //If busy, wait 
 }
 
