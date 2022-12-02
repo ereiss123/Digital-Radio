@@ -89,9 +89,31 @@ void I2C_Waitlineidle(I2C_TypeDef * I2Cx){
 	while( (I2Cx->ISR & I2C_ISR_BUSY) == I2C_ISR_BUSY ); //If busy, wait 
 }
 
-int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
+/*=========================================================================
+*
+*	Name: I2C_SendData
+*
+*	Function: send an array of bytes to a slave using I2C communication
+*
+*==========================================================================
+*BEGIN
+*	check that we are able to send data
+*	wait until the lines are not in use
+*	send a start bit
+*	for each bite in the array
+*		wait until the the ACK bit is recieved
+*		write the byte to teh transmit register
+*	wait until the ACK flag and sending is done
+*	if not acknowledged
+*		return with error
+*	send a stop bit
+*END
+*
+*=========================================================================*/
+
+int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
 	int i; 
-	if (Size <= 0 I I pData == NULL) return -1; 
+	if (Size <= 0 || pData == NULL) return -1; 
 	// Wait until the Line is idle 
 	I2C_WaitLineidle(I2Cx); 
 	// The Last argument: e = Sending data to the slave 
@@ -113,9 +135,30 @@ int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint16_t *pData, ui
 	return 0; 
 }
 
-int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
+
+/*=======================================================================
+*
+*	Name: I2C_RecieveData
+*
+*	Function: recieve data from a slave through I2C communication
+*========================================================================
+*
+*BEGIN
+*	check that we are able to recieve data
+*	wait until the line is idle
+*	send a start bit
+*	for each byte of data
+*		wait until the recieved flag is found
+*		set first index of recieved data to the data over the line
+*	wait until all communication is done
+*	send stop bit
+*END 
+*
+*=======================================================================*/
+
+int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
 	int i; 
-	if (Size <= 0 I I pData == NULL) return -1; 
+	if (Size <= 0 || pData == NULL) return -1; 
 	I2C_WaitLineidle(I2Cx); 
 	I2C_Start(I2Cx, SlaveAddress, Size, 1); // 1 Receiving from the slave 
 	for (i = 0; i < Size; i++) { 
