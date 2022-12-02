@@ -128,14 +128,30 @@ int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint16_t *pData
 	return 0; 
 }
 
+/*==========================================================================
+*
+*	Name: GPIO_Init
+*
+*	Function: initialize pins C0 and C1 for I2C communication
+*===========================================================================
+*
+*BEGIN
+*	Enable the clock for GPIOB and GPIOC
+*	Set C0 and C1 output type to open-drain 
+*	set the C0 and C1 mode to alternate function
+*	set the alternate function low register 0 and 1 to AF4
+*END
+*
+*===========================================================================*/
+
 void GPIO_Init() {
 	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN | RCC_AHB2ENR_GPIOCEN;	//enable clock on GPIOB and GPIOC
-	GPIOC->MODER &= 0xFFFFFFF0;
-	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
 	GPIOC->OTYPER &= 0xFFFFFFFC;	//clear pins C0 and C1 then set to open-drain
 	GPIOC->OTYPER |= 0x3;		//set to open-drain mode
-	GPIOC->AFRL &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
-	GPIOC->AFRL |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
+	GPIOC->MODER &= 0xFFFFFFF0;
+	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
+	GPIOC->AFR[1] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
+	GPIOC->AFR[1] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
 }
 
 
