@@ -89,7 +89,7 @@ void I2C_Waitlineidle(I2C_TypeDef * I2Cx){
 	while( (I2Cx->ISR & I2C_ISR_BUSY) == I2C_ISR_BUSY ); //If busy, wait 
 }
 
-int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
+int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
 	int i; 
 	if (Size <= 0 I I pData == NULL) return -1; 
 	// Wait until the Line is idle 
@@ -113,7 +113,7 @@ int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint8_t *pData, uin
 	return 0; 
 }
 
-int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
+int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
 	int i; 
 	if (Size <= 0 I I pData == NULL) return -1; 
 	I2C_WaitLineidle(I2Cx); 
@@ -127,3 +127,23 @@ int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint8_t *pData,
 	I2C_Stop(I2Cx); 
 	return 0; 
 }
+
+void GPIO_Init() {
+	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN | RCC_AHB2ENR_GPIOCEN;	//enable clock on GPIOB and GPIOC
+	GPIOC->MODER &= 0xFFFFFFF0;
+	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
+	GPIOC->OTYPER &= 0xFFFFFFFC;	//clear pins C0 and C1 then set to open-drain
+	GPIOC->OTYPER |= 0x3;		//set to open-drain mode
+	GPIOC->AFRL &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
+	GPIOC->AFRL |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
+}
+
+
+
+
+
+
+
+
+
+
