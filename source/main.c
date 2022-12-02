@@ -19,7 +19,10 @@
 *	I2C:
 *		SDL: C1 Alternate function 4- I2C3
 *		SCL: C0 Alternate Function 4- I2C3
-*	
+*		SEN: C2
+*		RST: C3
+*		GPIO1: C4		Might not need
+*		GPIO2: C5		Might not need
 *
 ===================================================================================================*/
 
@@ -66,7 +69,7 @@ void I2C_init(){
 void I2C_start(I2C_TypeDef * I2Cx, uint32_t DevAddress, uint8_t Size, uint8_t Direction){
 	uint32_t tmpreg = I2Cx->CR2;
 	tmpreg &= (uint32_t) ~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
-	if(direction == READ_FROM_SLAVE){
+	if(direction == 1){					//MIGHT BE A 0 
 		tmpreg |= I2C_CR2_RD_WRN;
 	} else {
 		tmpreg &= ~I2C_CR2_RD_WRN;		
@@ -193,8 +196,9 @@ void GPIO_Init() {
 	GPIOC->OTYPER |= 0x3;		//set to open-drain mode
 	GPIOC->MODER &= 0xFFFFFFF0;
 	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
-	GPIOC->AFR[1] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
-	GPIOC->AFR[1] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
+	GPIOC->AFR[0] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
+	GPIOC->AFR[0] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
+	//Need to set C2 C3 C4 C5 for the rest of the chip pins
 }
 
 

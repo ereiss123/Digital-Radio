@@ -1,0 +1,26 @@
+chan = 5*(freq-87.5) for tuning
+
+int main(void)
+
+BEGIN
+	clock init
+	GPIO init 
+	power up sequence for the chip
+	LCD init/clear
+	Keypad init
+	enable crystal oscillator on the chip
+	delay at least 500ms
+	I2C read and store all data to keep reserved bits the same
+	while 1
+		display channel data/ frequency / volume/
+		read keypad input
+		switch on keypad data
+			case A: enter frequency function
+			case B: seek up 
+			case C: seek down
+			case D: mute
+			case *: volume up
+			case #: volume down
+			default: ignore
+			write registers to chip in each case statement function
+		read registers from the chip
