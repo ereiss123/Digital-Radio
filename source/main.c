@@ -26,6 +26,15 @@
 *
 ===================================================================================================*/
 
+//================================================================================================
+//Global Variables
+extern unsigned short int si4703_registers[16];
+
+//=================================================================================================*/
+
+
+
+
 void I2C_init(){
 	uint32_t OwnAddress = 0x52;
 	RCC->APB1ENR1 |= RCC_APB1ENR_I2C3EN;	//enable clock for I2C3
@@ -202,7 +211,12 @@ void GPIO_Init() {
 }
 
 
-
+void tuner_poweup(){
+	GPIOC->ODR |= GPIO_ODR_OD0; //Ensure SCLK is high until first start bit is sent
+	GPIOC->ODR &= ~GPIO_ODR_OD3 & ~GPIO_ODR_OD1 ~; //Activate rst, and ensure SDIO is low
+	GPIOC->ODR |= GPIO_ODR_OD2; //Select two-wire mode
+	GPIOC->ODR |= GPIO_ODR_OD3; //set ~rst high
+}
 
 
 
