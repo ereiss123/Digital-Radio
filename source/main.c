@@ -212,12 +212,48 @@ void GPIO_Init() {
 
 
 void tuner_poweup(){
+	//Select two-wire mode
+	GPIOC->ODR |= GPIO_ODR_OD3; //Set ~rst low
 	GPIOC->ODR |= GPIO_ODR_OD0; //Ensure SCLK is high until first start bit is sent
-	GPIOC->ODR &= ~GPIO_ODR_OD3 & ~GPIO_ODR_OD1 ~; //Activate rst, and ensure SDIO is low
-	GPIOC->ODR |= GPIO_ODR_OD2; //Select two-wire mode
+	GPIOC->ODR &= ~GPIO_ODR_OD1;//ensure SDIO is low
+	GPIOC->ODR &= ~GPIO_ODR_OD2; //Ensure ~SEN is high
+	GPIOC->ODR &= ~GPIO_ODR_OD3; //Activate rst
+	//Need 110 ms delay
 	GPIOC->ODR |= GPIO_ODR_OD3; //set ~rst high
+	//Delay 110ms
 }
+/*====================================================================================================================
+								ARDUINO POWERUP CODE
 
+
+//To get the Si4703 inito 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
+//The breakout board has SEN pulled high, but also has SDIO pulled high. Therefore, after a normal power up
+//The Si4703 will be in an unknown state. RST must be controlled
+void si4703_init(void) {
+  Serial.println("Initializing I2C and Si4703");
+  
+  pinMode(resetPin, OUTPUT);
+  pinMode(SDIO, OUTPUT); //SDIO is connected to A4 for I2C
+  digitalWrite(SDIO, LOW); //A low SDIO indicates a 2-wire interface
+  digitalWrite(resetPin, LOW); //Put Si4703 into reset
+  delay(1); //Some delays while we allow pins to settle
+  digitalWrite(resetPin, HIGH); //Bring Si4703 out of reset with SDIO set to low and SEN pulled high with on-board resistor
+  delay(1); //Allow Si4703 to come out of reset
+
+  Wire.begin(); //Now that the unit is reset and I2C inteface mode, we need to begin I2C
+
+  si4703_readRegisters(); //Read the current register set
+  //si4703_registers[0x07] = 0xBC04; //Enable the oscillator, from AN230 page 9, rev 0.5 (DOES NOT WORK, wtf Silicon Labs datasheet?)
+  si4703_registers[0x07] = 0x8100; //Enable the oscillator, from AN230 page 9, rev 0.61 (works)
+  si4703_updateRegisters(); //Update
+
+  delay(500); //Wait for clock to settle - from AN230 page 9
+
+  si4703_readRegisters(); //Read the current register set
+  si4703_registers[POWERCFG] = 0x4001; //Enable the IC
+  //  si4703_registers[POWERCFG] |= (1<<SMUTE) | (1<<DMUTE); //Disable Mute, disable softmute
+  si4703_registers[SYSCONFIG1] |= (1<<RDS); //Enable RDS
+*/
 
 
 
