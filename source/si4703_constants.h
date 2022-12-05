@@ -9,8 +9,7 @@
 	#define I2C_FAIL_MAX 10 //This is the number of attempts we will try to contact the device before erroring out
 	#define SEEK_DOWN 0 //Direction used for seeking. Default is down
 	#define SEEK_UP 1
-
-	//Define the register names
+	//define register names
 	#define DEVICEID 0x00
 	#define CHIPID 0x01
 	#define POWERCFG 0x02
@@ -23,6 +22,34 @@
 	#define RDSB 0x0D
 	#define RDSC 0x0E
 	#define RDSD 0x0F
+
+	//Define the read register names
+	#define DEVICEID_R 0x06 //0x00
+	#define CHIPID_R 0x07 //0x01
+	#define POWERCFG_R 0x08 //0x02
+	#define CHANNEL_R 0x09 //0x03
+	#define SYSCONFIG1_R 0x0A //0x04
+	#define SYSCONFIG2_R 0x0B //0x05
+	#define STATUSRSSI_R 0x00 //0x0A
+	#define READCHAN_R 0x01 //0x0B
+	#define RDSA_R 0x02 //0x0C
+	#define RDSB_R 0x03 //0x0D
+	#define RDSC_R 0x04 //0x0E
+	#define RDSD_R 0x05 //0x0F
+	
+	//Define the write register names
+	#define DEVICEID_W 0x0A //0x00
+	#define CHIPID_W 0x0B //0x01
+	#define POWERCFG_W 0x00 //0x02
+	#define CHANNEL_W 0x01 //0x03
+	#define SYSCONFIG1_W 0x02 //0x04
+	#define SYSCONFIG2_W 0x03 //0x05
+	#define STATUSRSSI_W 0x04 //0x0A
+	#define READCHAN_W 0x05 //0x0B
+	#define RDSA_W 0x06 //0x0C
+	#define RDSB_W 0x07 //0x0D
+	#define RDSC_W 0x08 //0x0E
+	#define RDSD_W 0x09 //0x0F
 
 	//Register 0x02 - POWERCFG
 	#define SMUTE 15
