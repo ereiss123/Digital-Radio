@@ -24,11 +24,11 @@ void I2C_init(){
 	
 	I2C3->TIMINGR = 0; 			
 	I2C3->TIMINGR &= ~I2C_TIMINGR_PRESC; // Clear the prescaler 
-	I2C3->TIMINGR |= 7U << 28; // Set clock prescaler to 7 
-	I2C3->TIMINGR |= 49U; // SCLL: SCL Low period (master mode) > 4.7 us 
-	I2C3->TIMINGR |= 49U << 8; // SCLH: SCL high period (master mode) > 4.0 us 
-	I2C3->TIMINGR |= 14U << 20; // SCLDEL: Data setup time > 1.e us 
-	I2C3->TIMINGR |= 15U << 16; // SDADEL: Data hold time > 1.25 us
+	I2C3->TIMINGR |= 79U << 28; // Set clock prescaler to 7 
+	I2C3->TIMINGR |= 0U; // SCLL: SCL Low period (master mode) > 4.7 us 
+	I2C3->TIMINGR |= 0U << 8; // SCLH: SCL high period (master mode) > 4.0 us 
+	I2C3->TIMINGR |= 0U << 20; // SCLDEL: Data setup time > 0.1 us 
+	I2C3->TIMINGR |= 0U << 16; // SDADEL: Data hold time > 0.6 us
 
 	//I2C Own Address Register
 	I2C3->OAR1 &= ~I2C_OAR1_OA1EN; 
@@ -90,7 +90,7 @@ void I2C_WaitLineIdle(I2C_TypeDef * I2Cx){
 *
 *=========================================================================*/
 
-int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
+int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
 	int i; 
 	if (Size <= 0 || pData == NULL) return -1; 
 	// Wait until the Line is idle 
@@ -134,7 +134,7 @@ int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint8_t *pData, uin
 *
 *=======================================================================*/
 
-int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
+int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
 	int i; 
 	if (Size <= 0 || pData == NULL) return -1; 
 	I2C_WaitLineIdle(I2Cx); 

@@ -101,7 +101,7 @@ void si4703_init(void){
 								ARDUINO POWERUP CODE
 
 
-//To get the Si4703 inito 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
+//To get the Si4703 into 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
 //The breakout board has SEN pulled high, but also has SDIO pulled high. Therefore, after a normal power up
 //The Si4703 will be in an unknown state. RST must be controlled
 void si4703_init(void) {
