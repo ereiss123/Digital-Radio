@@ -10,7 +10,7 @@ GPIOC: LCD
 	11: RW
 	12: RS
 =======================================================*/
-#include "LCD.h"
+#include "lcd.h"
 #include "stm32l476xx.h"
 
 

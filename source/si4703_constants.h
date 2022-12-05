@@ -1,10 +1,10 @@
 #ifndef si4703_constants
 #define si4703_constants
 
-	unsigned short int si4703_registers[16]; //There are 16 registers, each 16 bits large
+	//extern unsigned short int si4703_registers[16]; //There are 16 registers, each 16 bits large
 	#define FAIL 0
 	#define SUCCESS 1
-
+	
 	#define SI4703 0x10 //0b._001.0000 = I2C address of Si4703 - note that the Wire function assumes non-left-shifted I2C address, not 0b.0010.000W
 	#define I2C_FAIL_MAX 10 //This is the number of attempts we will try to contact the device before erroring out
 	#define SEEK_DOWN 0 //Direction used for seeking. Default is down
