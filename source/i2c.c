@@ -32,7 +32,7 @@ void I2C_init(){
 
 	//I2C Own Address Register
 	I2C3->OAR1 &= ~I2C_OAR1_OA1EN; 
-	I2C3->OAR1 = I2C_OAR1_OA1EN | 0x52; // 7-bit own address 
+	I2C3->OAR1 = I2C_OAR1_OA1EN | OwnAddress; // 7-bit own address 
 	I2C3->OAR1 &= ~I2C_OAR2_OA2EN; // Disable own address 2 
 	
 	//I2C CR2 configuration
