@@ -192,10 +192,10 @@ void si4703_init(void) {
 
 void delay(int ms){
 	volatile int count = 0;
-	while(count < ms){
+	delay = ms;
+	while(delay > 0){
 		count++;
 	}
-
 }
 
 
