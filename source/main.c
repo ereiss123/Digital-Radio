@@ -3,6 +3,7 @@
 #include "lcd.h"
 #include "si4703_constants.h"
 #include "i2c.h"
+#include "interrupts.h"
 /*================================================================================================
 *Author: Ash Carlsen
 *Author: Eric Reiss
@@ -64,17 +65,24 @@ i register addr
 15 	0x01
 */
 int main(void){
-	delay(500);
+	RCC->CR |= RCC_CR_HSION;	// turn on HSI
+	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
+	SysTick_Init(16000) 	//initialize SysTick for every 1 ms
+	delay(500);				//should delay for 500 ms
 	return 0;
 }
 
+void SysTick_Init(uint32_t ticks) {
+	SysTick->CTRL = 0;
+	SysTick->LOAD = ticks -1;
+	NVIC_SetPriority(SysTick_IRQn, (1<<__NVIC_PRIO_BITS)-1);
+	SysTick->VAL = 0;
+	SysTick->CTRL |= (SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk) ;
+}
 
-
-
-
-
-
-
+void SysTick_Handler(void) {
+	delay--;
+}
 
 
 
