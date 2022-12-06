@@ -30,6 +30,8 @@
 //Global Variables
 unsigned static short int si4703_read_registers[16];
 unsigned static short int si4703_write_registers[16];
+unsigned static int delay;
+
 //=================================================================================================*/
 
 //=================================================================================================
