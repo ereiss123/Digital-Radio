@@ -5,7 +5,7 @@
 #include "i2c.h"
 #include "interrupts.h"
 /*================================================================================================
-*Author: Ash Carlsen
+*Author: Ashton Carlsen
 *Author: Eric Reiss
 *Description: Digital FM receiver built using Nucleo L476rg board and  Sparkfun Evaluation Tuner 
 *Pins: 
@@ -43,32 +43,39 @@ void read_registers(void);
 void write_registers(void);
 void read_to_write(void);
 void delay(int ms);
+
 //=================================================================================================
 /*
-si4703_write_registers
-i register addr 
-0 	0x02
-1 	0x03
-2 	0x04
-3 	0x05
-4 	0x06 
-5 	0x07
-6 	0x08
-7 	0x09
-8 	0x0A
-9 	0x0B
-10 	0x0C
-11 	0x0D
-12 	0x0E
-13 	0x0F
-14 	0x00
-15 	0x01
+si4703_write_registers				si4703_read_register
+i register addr 					i 	register addr
+0 	0x02							0	0X0A
+1 	0x03							1	0x0B
+2 	0x04							2	0x0C
+3 	0x05							3	0x0D
+4 	0x06 							4	0x0E
+5 	0x07							5	0x0F
+6 	0x08							6	0x00
+7 	0x09							7	0x01
+8 	0x0A							8	0x02
+9 	0x0B							9	0x03
+10 	0x0C							10	0x04
+11 	0x0D							11	0x05
+12 	0x0E							12	0x06
+13 	0x0F							13	0x07
+14 	0x00							14	0x08
+15 	0x01							15	0x09
 */
+
 int main(void){
 	RCC->CR |= RCC_CR_HSION;	// turn on HSI
 	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
 	SysTick_Init(16000) 	//initialize SysTick for every 1 ms
-	delay(500);				//should delay for 500 ms
+	GPIO_Init();			//initialize GPIO for si4703
+	LCD_Init();				//initialize LCD
+	LCD_Clear();			//Clear the LCD
+	keypad_Init();			//initialize Keypad pins
+	si4703_init();
+	delay(510);				//should delay for 500 ms
 	return 0;
 }
 
@@ -142,7 +149,7 @@ void si4703_init(void){
 	//Set band data
 	read_registers();
 	si4703_write_registers[3] = 0x1C07; //Set Seek threshold to 0x1C, Set band select and channel spacing to 0x0 (USA), Set volume to 0x7
-	
+	write_registers();
 }
 
 void read_registers(void){
@@ -151,7 +158,7 @@ void read_registers(void){
 }
 void write_registers(void){
 	I2C_SendData(I2C3,SI4703,si4703_write_registers,16);
-	//delay 500ms
+	delay(510);
 }
 
 void read_to_write(void){

@@ -9,6 +9,11 @@ void keydelay_ms(unsigned int ms) {
 	return;
 }
 
+void keypad_Init(){
+	GPIOB->MODER &= 0xFF0000FFU; //Set PB8-11 to input
+	GPIOB->MODER |= 0x00005500U; //Set PB4-7 to output
+	GPIOB->OTYPER |= 0x000000F0U; //Set PB4-7 to open drain
+}
 
 char keypadPoll(void){
     unsigned int i,compare, IDR_value;
