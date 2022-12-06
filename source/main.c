@@ -31,7 +31,7 @@
 //Global Variables
 unsigned static short int si4703_read_registers[16];
 unsigned static short int si4703_write_registers[16];
-unsigned static int delay;
+unsigned static int Tdelay;
 
 //=================================================================================================*/
 
@@ -70,12 +70,12 @@ int main(void){
 	char data = 'z';
 	RCC->CR |= RCC_CR_HSION;	// turn on HSI
 	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
-	SysTick_Init(16000) 	//initialize SysTick for every 1 ms
-	GPIO_Init();			//initialize GPIO for si4703
+	SysTick_Init(16000); 	//initialize SysTick for every 1 ms
+	GPIO_init();			//initialize GPIO for si4703
 	LCD_Init();				//initialize LCD
 	LCD_Clear();			//Clear the LCD
-	keypad_Init();			//initialize Keypad pins
-	LCD_DisplayString(0, "Initializing Radio");	//test LCD type display
+	keypad_init();			//initialize Keypad pins
+	LCD_DisplayString(0, (unsigned char *)"Initializing Radio");	//test LCD type display
 	si4703_init();
 	delay(510);				//should delay for 500 ms
 	LCD_Clear();			//for testing purpose
@@ -102,7 +102,7 @@ void SysTick_Init(uint32_t ticks) {
 }
 
 void SysTick_Handler(void) {
-	delay--;
+	Tdelay--;
 }
 
 
@@ -221,8 +221,8 @@ void si4703_init(void) {
 
 void delay(unsigned int ms){
 	volatile int count = 0;
-	delay = ms;
-	while(delay > 0){
+	Tdelay = ms;
+	while(Tdelay > 0){
 		count++;
 	}
 }
