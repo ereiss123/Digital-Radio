@@ -36,10 +36,33 @@ unsigned static short int si4703_write_registers[16];
 //Main Function Pre-defines
 void si4703_init(void);
 void GPIO_init(void);
+void read_registers(void);
+void write_registers(void);
+void read_to_write(void);
+void delay(int ms);
 //=================================================================================================
-
+/*
+si4703_write_registers
+i register addr 
+0 	0x02
+1 	0x03
+2 	0x04
+3 	0x05
+4 	0x06 
+5 	0x07
+6 	0x08
+7 	0x09
+8 	0x0A
+9 	0x0B
+10 	0x0C
+11 	0x0D
+12 	0x0E
+13 	0x0F
+14 	0x00
+15 	0x01
+*/
 int main(void){
-
+	delay(500);
 	return 0;
 }
 
@@ -98,13 +121,45 @@ void si4703_init(void){
 	GPIOC->ODR |= GPIO_ODR_OD3; //set ~rst high
 	//Delay 110ms
 	I2C_init();
+	read_registers();
+	si4703_write_registers[5] = 0x8100; //Enable crystal oscillator in TEST register
+	write_registers();
+	read_registers();
+	si4703_write_registers[0] = 0x4001; //Set enable bit and DMUTE bit in POWERCFG
+	si4703_write_registers[2] = 1<<RDS; //Enable RDS data
+	write_registers();
+	
+	//Set band data
+	read_registers();
+	si4703_write_registers[3] = 0x1C07; //Set Seek threshold to 0x1C, Set band select and channel spacing to 0x0 (USA), Set volume to 0x7
+	
+}
+
+void read_registers(void){
+	I2C_ReceiveData(I2C3,SI4703,si4703_read_registers,16);
+	read_to_write();
+}
+void write_registers(void){
+	I2C_SendData(I2C3,SI4703,si4703_write_registers,16);
+	//delay 500ms
+}
+
+void read_to_write(void){
+	int j;
+	for(int i = 0; i<16; i++){
+		if(i < 8)
+			j = i+8;
+		else
+			j = i-8;
+		si4703_write_registers[i] = si4703_read_registers[j];
+	}
 	
 }
 /*====================================================================================================================
 								ARDUINO POWERUP CODE
 
 
-//To get the Si4703 into 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
+//To get the Si4703 inito 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
 //The breakout board has SEN pulled high, but also has SDIO pulled high. Therefore, after a normal power up
 //The Si4703 will be in an unknown state. RST must be controlled
 void si4703_init(void) {
@@ -133,7 +188,13 @@ void si4703_init(void) {
   si4703_registers[SYSCONFIG1] |= (1<<RDS); //Enable RDS
 */
 
+void delay(int ms){
+	volatile int count = 0;
+	while(count < ms){
+		count++;
+	}
 
+}
 
 
 

@@ -9,6 +9,7 @@
 	#define I2C_FAIL_MAX 10 //This is the number of attempts we will try to contact the device before erroring out
 	#define SEEK_DOWN 0 //Direction used for seeking. Default is down
 	#define SEEK_UP 1
+	
 	//define register names
 	#define DEVICEID 0x00
 	#define CHIPID 0x01
