@@ -22,7 +22,7 @@
 *		SCL: C0 Alternate Function 4- I2C3
 *		SEN: C2
 *		RST: C3
-*		GPIO1: C4		Might not need
+*		GPIO1: C4		Might not need	Maybe hookup LED's to indicate seek finish or tune finish
 *		GPIO2: C5		Might not need
 *
 ===================================================================================================*/
@@ -42,7 +42,7 @@ void GPIO_init(void);
 void read_registers(void);
 void write_registers(void);
 void read_to_write(void);
-void delay(int ms);
+void delay(unsigned int ms);
 
 //=================================================================================================
 /*
@@ -67,6 +67,7 @@ i register addr 					i 	register addr
 */
 
 int main(void){
+	char data = 'z';
 	RCC->CR |= RCC_CR_HSION;	// turn on HSI
 	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
 	SysTick_Init(16000) 	//initialize SysTick for every 1 ms
@@ -74,8 +75,21 @@ int main(void){
 	LCD_Init();				//initialize LCD
 	LCD_Clear();			//Clear the LCD
 	keypad_Init();			//initialize Keypad pins
+	LCD_DisplayString(0, "Initializing Radio");	//test LCD type display
 	si4703_init();
 	delay(510);				//should delay for 500 ms
+	LCD_Clear();			//for testing purpose
+	while(1){
+		read_registers();
+		data = keypadPoll();
+		switch(data){
+			case 'A': /*tuning function*/ break;
+			case 'B': /*seek up function*/ break;
+			case 'C': /*seek down function*/ break;
+			case 'D': /*Mute function*/ break;
+			default: break;
+		}
+	}
 	return 0;
 }
 
@@ -123,7 +137,7 @@ void GPIO_init(void) {
 	GPIOC->MODER &= 0xFFFFFF0F; //clear C2 and C3 mode register
 	GPIOC->MODER |= 0x00000050;	//set C2 and C3 to output.
 	GPIOC->OTYPER &= 0xFFFFFFF3; //set C2 and C3 to push-pull output type
-	//Need to set C2 C3 C4 C5 for the rest of the chip pins
+	//Need to set C4 C5 for the rest of the chip pins
 }
 
 
@@ -205,7 +219,7 @@ void si4703_init(void) {
   si4703_registers[SYSCONFIG1] |= (1<<RDS); //Enable RDS
 */
 
-void delay(int ms){
+void delay(unsigned int ms){
 	volatile int count = 0;
 	delay = ms;
 	while(delay > 0){
