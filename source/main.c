@@ -80,6 +80,9 @@ void GPIO_init(void) {
 	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
 	GPIOC->AFR[0] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
 	GPIOC->AFR[0] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
+	GPIOC->MODER &= 0xFFFFFF0F; //clear C2 and C3 mode register
+	GPIOC->MODER |= 0x00000050;	//set C2 and C3 to output.
+	GPIOC->OTYPER &= 0xFFFFFFF3; //set C2 and C3 to push-pull output type
 	//Need to set C2 C3 C4 C5 for the rest of the chip pins
 }
 
