@@ -148,7 +148,28 @@
           <Name>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC8000 -FN1 -FF0STM32L4xx_1024 -FS08000000 -FL0100000 -FP0($$Device:STM32L476RGTx$CMSIS\Flash\STM32L4xx_1024.FLM))</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
+<<<<<<< HEAD
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>79</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134220002</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\source\main.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Final_Project\source/main.c\79</Expression>
+        </Bp>
+      </Breakpoint>
+=======
       <Breakpoint/>
+>>>>>>> e72fee796e4280164b909171e63225ae7c4ab2ec
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
@@ -193,6 +214,15 @@
       <pMultCmdsp></pMultCmdsp>
       <SystemViewers>
         <Entry>
+<<<<<<< HEAD
+          <Name>System Viewer\GPIOB</Name>
+          <WinId>35905</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\GPIOC</Name>
+          <WinId>35904</WinId>
+        </Entry>
+=======
           <Name>System Viewer\GPIOA</Name>
           <WinId>35905</WinId>
         </Entry>
@@ -208,6 +238,7 @@
           <Name>System Viewer\I2C3</Name>
           <WinId>35902</WinId>
         </Entry>
+>>>>>>> e72fee796e4280164b909171e63225ae7c4ab2ec
       </SystemViewers>
       <DebugDescription>
         <Enable>1</Enable>
