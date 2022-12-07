@@ -1,3 +1,9 @@
 source/*.o
 source/*.d
 Objects/*
+Objects/*.o
+Objects/*.d
+Listings/*
+RTE/*
+DebugConfig/*
+*.uv*

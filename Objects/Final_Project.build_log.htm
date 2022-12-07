@@ -1,75 +1,3 @@
-<<<<<<< HEAD
-<html>
-<body>
-<pre>
-<h1>µVision Build Log</h1>
-<h2>Tool Versions:</h2>
-IDE-Version: µVision V5.37.0.0
-Copyright (C) 2022 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: Ashton Carlsen, None, LIC=----
- 
-Tool Versions:
-Toolchain:       MDK-Lite  Version: 5.37.0.0
-Toolchain Path:  C:\Keil_v5\ARM\ARMCLANG\Bin
-C Compiler:      ArmClang.exe V6.18
-Assembler:       Armasm.exe V6.18
-Linker/Locator:  ArmLink.exe V6.18
-Library Manager: ArmAr.exe V6.18
-Hex Converter:   FromElf.exe V6.18
-CPU DLL:         SARMCM3.DLL V5.37.0.0
-Dialog DLL:      DCM.DLL V1.17.5.0
-Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.9.0
-Dialog DLL:      TCM.DLL V1.56.1.0
- 
-<h2>Project:</h2>
-C:\Users\12087\UtahState\ECE3710\Digital-Radio\Final_Project.uvprojx
-Project File Date:  12/06/2022
-
-<h2>Output:</h2>
-*** Using Compiler 'V6.18', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
-Build target 'Target 1'
-source/main.c(2): warning: In file included from...
-source/keypad.h(5): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-void keypad_init();
-                ^
-                 void
-1 warning generated.
-compiling main.c...
-source/lcd.c(89): warning: mixing declarations and code is incompatible with standards before C99 [-Wdeclaration-after-statement]
-        int i;
-            ^
-1 warning generated.
-compiling lcd.c...
-linking...
-Program Size: Code=2202 RO-data=422 RW-data=0 ZI-data=1704  
-".\Objects\Final_Project.axf" - 0 Error(s), 2 Warning(s).
-
-<h2>Software Packages used:</h2>
-
-Package Vendor: ARM
-                http://www.keil.com/pack/ARM.CMSIS.5.9.0.pack
-                ARM.CMSIS.5.9.0
-                CMSIS (Common Microcontroller Software Interface Standard)
-   * Component: CORE Version: 5.6.0
-
-Package Vendor: Keil
-                http://www.keil.com/pack/Keil.STM32L4xx_DFP.2.6.1.pack
-                Keil.STM32L4xx_DFP.2.6.1
-                STMicroelectronics STM32L4 Series Device Support, Drivers and Examples
-
-<h2>Collection of Component include folders:</h2>
-  ./RTE/_Target_1
-  C:/Users/12087/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include
-  C:/Users/12087/AppData/Local/Arm/Packs/Keil/STM32L4xx_DFP/2.6.1/Drivers/CMSIS/Device/ST/STM32L4xx/Include
-
-<h2>Collection of Component Files used:</h2>
-
-   * Component: ARM::CMSIS:CORE:5.6.0
-Build Time Elapsed:  00:00:00
-</pre>
-</body>
-</html>
-=======
 <html>
 <body>
 <pre>
@@ -89,7 +17,7 @@ Library Manager: ArmAr.exe V6.18
 Hex Converter:   FromElf.exe V6.18
 CPU DLL:         SARMCM3.DLL V5.37.0.0
 Dialog DLL:      DCM.DLL V1.17.5.0
-Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.9.0
+Target DLL:      UL2CM3.DLL V1.164.7.0
 Dialog DLL:      TCM.DLL V1.56.1.0
  
 <h2>Project:</h2>
@@ -99,7 +27,19 @@ Project File Date:  12/05/2022
 <h2>Output:</h2>
 *** Using Compiler 'V6.18', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-".\Objects\Final_Project.axf" - 0 Error(s), 0 Warning(s).
+source/main.c(82): error: version control conflict marker in file
+<<<<<<< HEAD
+^
+1 error generated.
+compiling main.c...
+compiling keypad.c...
+compiling i2c.c...
+source/lcd.c(89): warning: mixing declarations and code is incompatible with standards before C99 [-Wdeclaration-after-statement]
+        int i;
+            ^
+1 warning generated.
+compiling lcd.c...
+".\Objects\Final_Project.axf" - 1 Error(s), 1 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -122,8 +62,8 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.6.0
-Build Time Elapsed:  00:00:01
+Target not created.
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>
->>>>>>> e72fee796e4280164b909171e63225ae7c4ab2ec
