@@ -29,8 +29,8 @@
 
 //================================================================================================
 //Global Variables
-unsigned static short int si4703_read_registers[16];
-unsigned static short int si4703_write_registers[16];
+unsigned static char si4703_read_registers[32];
+unsigned static char si4703_write_registers[32];
 unsigned static int Tdelay;
 
 //=================================================================================================*/
@@ -68,17 +68,23 @@ i register addr 					i 	register addr
 
 int main(void){
 	//char data = 'z';
+	int i;
+	for(i = 0; i<32; i++){
+		si4703_read_registers[i] = 0;
+	}
+	
 	RCC->CR |= RCC_CR_HSION;	// turn on HSI
 	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
 	SysTick_Init(16000); 	//initialize SysTick for every 1 ms
 	GPIO_init();			//initialize GPIO for si4703
 	LCD_Init();				//initialize LCD
 	LCD_Clear();			//Clear the LCD
-	keypad_init();			//initialize Keypad pins
+	//keypad_init();			//initialize Keypad pins
 	LCD_DisplayString(0, (unsigned char *)"Initializing\0");	//test LCD type display
-//	si4703_init();
+	delay(20);
+	si4703_init();
 	delay(510);				//should delay for 500 ms
-	//LCD_Clear();			//for testing purpose
+	LCD_Clear();			//for testing purpose
 	//while(1){
 	//	read_registers();
 	//	data = keypadPoll();
@@ -90,7 +96,7 @@ int main(void){
 	//		default: break;
 	//	}
 	//}
-	return 0;
+	while(1);
 }
 
 void SysTick_Init(uint32_t ticks) {
@@ -130,12 +136,9 @@ void GPIO_init(void) {
 	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN | RCC_AHB2ENR_GPIOCEN;	//enable clock on GPIOB and GPIOC
 	GPIOC->OTYPER &= 0xFFFFFFFC;	//clear pins C0 and C1 then set to open-drain
 	GPIOC->OTYPER |= 0x3;		//set to open-drain mode
-	GPIOC->MODER &= 0xFFFFFFF0;
-	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
-	GPIOC->AFR[0] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
-	GPIOC->AFR[0] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
-	GPIOC->MODER &= 0xFFFFFF0F; //clear C2 and C3 mode register
-	GPIOC->MODER |= 0x00000050;	//set C2 and C3 to output.
+	
+	GPIOC->MODER &= 0xFFFFFF00; //clear C2 and C3 mode register
+	GPIOC->MODER |= 0x00000055;	//set C2 and C3 to output.
 	GPIOC->OTYPER &= 0xFFFFFFF3; //set C2 and C3 to push-pull output type
 	//Need to set C4 C5 for the rest of the chip pins
 }
@@ -143,13 +146,14 @@ void GPIO_init(void) {
 
 void si4703_init(void){
 	//Select two-wire mode
-	GPIOC->ODR |= GPIO_ODR_OD3; //Set ~rst low
+	GPIOC->ODR &= ~GPIO_ODR_OD3; //Set ~rst low
 	GPIOC->ODR |= GPIO_ODR_OD0; //Ensure SCLK is high until first start bit is sent
 	GPIOC->ODR &= ~GPIO_ODR_OD1;//ensure SDIO is low
-	GPIOC->ODR &= ~GPIO_ODR_OD2; //Ensure ~SEN is high
-	GPIOC->ODR &= ~GPIO_ODR_OD3; //Activate rst
-	delay(110);
-	GPIOC->ODR |= GPIO_ODR_OD3; //set ~rst high
+	//GPIOC->ODR |= GPIO_ODR_OD2; //Ensure ~SEN is high
+	delay(1);
+	GPIOC->ODR |= GPIO_ODR_OD3; //Activate rst
+	//delay(110);
+	//GPIOC->ODR &= ~GPIO_ODR_OD3; //set ~rst high
 	delay(110);
 	I2C_init();
 	read_registers();
@@ -167,11 +171,11 @@ void si4703_init(void){
 }
 
 void read_registers(void){
-	I2C_ReceiveData(I2C3,SI4703,si4703_read_registers,16);
+	I2C_ReceiveData(I2C3,SI4703,si4703_read_registers,32);
 	read_to_write();
 }
 void write_registers(void){
-	I2C_SendData(I2C3,SI4703,si4703_write_registers,16);
+	I2C_SendData(I2C3,SI4703,si4703_write_registers,32);
 	delay(510);
 }
 

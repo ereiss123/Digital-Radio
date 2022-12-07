@@ -3,6 +3,11 @@
 #define NULL (void*)0
 
 void I2C_init(){
+	GPIOC->MODER &= 0xFFFFFFF0;
+	GPIOC->MODER |= 0xA;	//set C0 and C1 to alternate function mode
+	GPIOC->AFR[0] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
+	GPIOC->AFR[0] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
+	
 	uint32_t OwnAddress = 0x52;
 	RCC->APB1ENR1 |= RCC_APB1ENR1_I2C3EN;	//enable clock for I2C3
 	
@@ -90,7 +95,7 @@ void I2C_WaitLineIdle(I2C_TypeDef * I2Cx){
 *
 *=========================================================================*/
 
-int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
+int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
 	int i; 
 	if (Size <= 0 || pData == NULL) return -1; 
 	// Wait until the Line is idle 
@@ -134,13 +139,13 @@ int8_t I2C_SendData(I2C_TypeDef *I2Cx, uint8_t SlaveAddress, uint16_t *pData, ui
 *
 *=======================================================================*/
 
-int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint16_t *pData, uint8_t Size) { 
+int8_t I2C_ReceiveData(I2C_TypeDef * I2Cx, uint8_t SlaveAddress, uint8_t *pData, uint8_t Size) { 
 	int i; 
 	if (Size <= 0 || pData == NULL) return -1; 
 	I2C_WaitLineIdle(I2Cx); 
-	I2C_Start(I2Cx, SlaveAddress, Size, 1); // 1 Receiving from the slave 
+	I2C_Start(I2Cx, SlaveAddress, Size, 1); // 1 Receiving from the slave
 	for (i = 0; i < Size; i++) { 
-		//Wait until RXNE flag is set 
+		//Wait until RXNE flag is set    
 		while( (I2Cx->ISR & I2C_ISR_RXNE) == 0 ); 
 		pData[i] = I2Cx->RXDR & I2C_RXDR_RXDATA; 
 	} 
