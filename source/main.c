@@ -79,6 +79,7 @@ int main(void){
 	si4703_init();
 	delay(510);				//should delay for 500 ms
 	LCD_Clear();			//for testing purpose
+<<<<<<< HEAD
 	//while(1){
 	//	read_registers();
 	//	data = keypadPoll();
@@ -91,6 +92,19 @@ int main(void){
 	//	}
 	//}
 	return 0;
+=======
+	while(1){
+		read_registers();
+		data = keypadPoll();
+		switch(data){
+			case 'A': /*tuning function*/ break;
+			case 'B': /*seek up function*/ break;
+			case 'C': /*seek down function*/ break;
+			case 'D': /*Mute function*/ break;
+			default: break;
+		}
+	}
+>>>>>>> e72fee796e4280164b909171e63225ae7c4ab2ec
 }
 
 void SysTick_Init(uint32_t ticks) {
@@ -148,9 +162,9 @@ void si4703_init(void){
 	GPIOC->ODR &= ~GPIO_ODR_OD1;//ensure SDIO is low
 	GPIOC->ODR &= ~GPIO_ODR_OD2; //Ensure ~SEN is high
 	GPIOC->ODR &= ~GPIO_ODR_OD3; //Activate rst
-	//Need 110 ms delay
+	delay(110);
 	GPIOC->ODR |= GPIO_ODR_OD3; //set ~rst high
-	//Delay 110ms
+	delay(110);
 	I2C_init();
 	read_registers();
 	//si4703_write_registers[5] = 0x8100; //Enable crystal oscillator in TEST register
