@@ -76,10 +76,9 @@ int main(void){
 	LCD_Clear();			//Clear the LCD
 	keypad_init();			//initialize Keypad pins
 	LCD_DisplayString(0, (unsigned char *)"Initializing\0");	//test LCD type display
-	si4703_init();
+//	si4703_init();
 	delay(510);				//should delay for 500 ms
-	LCD_Clear();			//for testing purpose
-<<<<<<< HEAD
+	//LCD_Clear();			//for testing purpose
 	//while(1){
 	//	read_registers();
 	//	data = keypadPoll();
@@ -92,19 +91,6 @@ int main(void){
 	//	}
 	//}
 	return 0;
-=======
-	while(1){
-		read_registers();
-		data = keypadPoll();
-		switch(data){
-			case 'A': /*tuning function*/ break;
-			case 'B': /*seek up function*/ break;
-			case 'C': /*seek down function*/ break;
-			case 'D': /*Mute function*/ break;
-			default: break;
-		}
-	}
->>>>>>> e72fee796e4280164b909171e63225ae7c4ab2ec
 }
 
 void SysTick_Init(uint32_t ticks) {
