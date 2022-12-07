@@ -90,7 +90,6 @@ int main(void){
 			default: break;
 		}
 	}
-	return 0;
 }
 
 void SysTick_Init(uint32_t ticks) {
@@ -148,9 +147,9 @@ void si4703_init(void){
 	GPIOC->ODR &= ~GPIO_ODR_OD1;//ensure SDIO is low
 	GPIOC->ODR &= ~GPIO_ODR_OD2; //Ensure ~SEN is high
 	GPIOC->ODR &= ~GPIO_ODR_OD3; //Activate rst
-	//Need 110 ms delay
+	delay(110);
 	GPIOC->ODR |= GPIO_ODR_OD3; //set ~rst high
-	//Delay 110ms
+	delay(110);
 	I2C_init();
 	read_registers();
 	si4703_write_registers[5] = 0x8100; //Enable crystal oscillator in TEST register
