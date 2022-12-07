@@ -67,7 +67,7 @@ i register addr 					i 	register addr
 */
 
 int main(void){
-	char data = 'z';
+	//char data = 'z';
 	RCC->CR |= RCC_CR_HSION;	// turn on HSI
 	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
 	SysTick_Init(16000); 	//initialize SysTick for every 1 ms
@@ -75,21 +75,21 @@ int main(void){
 	LCD_Init();				//initialize LCD
 	LCD_Clear();			//Clear the LCD
 	keypad_init();			//initialize Keypad pins
-	LCD_DisplayString(0, (unsigned char *)"Initializing Radio");	//test LCD type display
+	LCD_DisplayString(0, (unsigned char *)"Initializing\0");	//test LCD type display
 	si4703_init();
 	delay(510);				//should delay for 500 ms
 	LCD_Clear();			//for testing purpose
-	while(1){
-		read_registers();
-		data = keypadPoll();
-		switch(data){
-			case 'A': /*tuning function*/ break;
-			case 'B': /*seek up function*/ break;
-			case 'C': /*seek down function*/ break;
-			case 'D': /*Mute function*/ break;
-			default: break;
-		}
-	}
+	//while(1){
+	//	read_registers();
+	//	data = keypadPoll();
+	//	switch(data){
+	//		case 'A': /*tuning function*/ break;
+	//		case 'B': /*seek up function*/ break;
+	//		case 'C': /*seek down function*/ break;
+	//		case 'D': /*Mute function*/ break;
+	//		default: break;
+	//	}
+	//}
 	return 0;
 }
 
@@ -153,17 +153,17 @@ void si4703_init(void){
 	//Delay 110ms
 	I2C_init();
 	read_registers();
-	si4703_write_registers[5] = 0x8100; //Enable crystal oscillator in TEST register
-	write_registers();
-	read_registers();
-	si4703_write_registers[0] = 0x4001; //Set enable bit and DMUTE bit in POWERCFG
-	si4703_write_registers[2] = 1<<RDS; //Enable RDS data
-	write_registers();
+	//si4703_write_registers[5] = 0x8100; //Enable crystal oscillator in TEST register
+	//write_registers();
+	//read_registers();
+	//si4703_write_registers[0] = 0x4001; //Set enable bit and DMUTE bit in POWERCFG
+	//si4703_write_registers[2] = 1<<RDS; //Enable RDS data
+	//write_registers();
 	
 	//Set band data
-	read_registers();
-	si4703_write_registers[3] = 0x1C07; //Set Seek threshold to 0x1C, Set band select and channel spacing to 0x0 (USA), Set volume to 0x7
-	write_registers();
+	//read_registers();
+	//si4703_write_registers[3] = 0x1C07; //Set Seek threshold to 0x1C, Set band select and channel spacing to 0x0 (USA), Set volume to 0x7
+	//write_registers();
 }
 
 void read_registers(void){
