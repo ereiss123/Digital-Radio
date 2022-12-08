@@ -43,6 +43,8 @@ void read_registers(void);
 void write_registers(void);
 void read_to_write(void);
 void delay(unsigned int ms);
+void view_arrays(unsigned char* read, unsigned char* write);
+void tune(double station);
 
 //=================================================================================================
 /*
@@ -85,7 +87,7 @@ int main(void){
 	si4703_init();
 	delay(510);				//should delay for 500 ms
 	LCD_Clear();			//for testing purpose
-	
+	tune(94.5f);
 	//while(1){
 	//	read_registers();
 	//	data = keypadPoll();
@@ -114,7 +116,11 @@ void SysTick_Handler(void) {
 
 
 
-
+void view_arrays(unsigned char* read, unsigned char* write){
+	volatile unsigned int zero = 0;
+	*read |= zero;
+	*write |= zero;
+}
 
 
 /*==========================================================================
@@ -158,17 +164,29 @@ void si4703_init(void){
 	delay(110);
 	I2C_init();
 	read_registers();
-	//si4703_write_registers[5] = 0x8100; //Enable crystal oscillator in TEST register
-	//write_registers();
-	//read_registers();
-	//si4703_write_registers[0] = 0x4001; //Set enable bit and DMUTE bit in POWERCFG
-	//si4703_write_registers[2] = 1<<RDS; //Enable RDS data
-	//write_registers();
-	
-	//Set band data
-	//read_registers();
-	//si4703_write_registers[3] = 0x1C07; //Set Seek threshold to 0x1C, Set band select and channel spacing to 0x0 (USA), Set volume to 0x7
-	//write_registers();
+	//Turn on crystal oscillator
+	si4703_write_registers[10] |= 1<<7;
+	write_registers();
+	//Disable mute and enable chip
+	si4703_write_registers[0] |= (1<<6 | 1<<7);
+	si4703_write_registers[1] |= 1;
+	si4703_write_registers[1] &= ~(1<<6);
+	write_registers();
+	read_registers();
+	si4703_write_registers[5] |= 0xC;
+	write_registers();
+	read_registers();
+//	view_arrays(si4703_read_registers,si4703_write_registers);
+	//Set the band and volume
+	si4703_write_registers[6] = 28; //Seek threshold of 28
+	si4703_write_registers[7] &= 0x0000; //Band 00 is USA
+	si4703_write_registers[7] |= 0x7;
+	write_registers();
+	read_registers();
+	//Enable RDS
+	si4703_write_registers[4] |= 1<<4;
+	write_registers();
+	read_registers();
 }
 
 void read_registers(void){
@@ -191,38 +209,21 @@ void read_to_write(void){
 	}
 	
 }
-/*====================================================================================================================
-								ARDUINO POWERUP CODE
 
-
-//To get the Si4703 inito 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
-//The breakout board has SEN pulled high, but also has SDIO pulled high. Therefore, after a normal power up
-//The Si4703 will be in an unknown state. RST must be controlled
-void si4703_init(void) {
-  Serial.println("Initializing I2C and Si4703");
-  
-  pinMode(resetPin, OUTPUT);
-  pinMode(SDIO, OUTPUT); //SDIO is connected to A4 for I2C
-  digitalWrite(SDIO, LOW); //A low SDIO indicates a 2-wire interface
-  digitalWrite(resetPin, LOW); //Put Si4703 into reset
-  delay(1); //Some delays while we allow pins to settle
-  digitalWrite(resetPin, HIGH); //Bring Si4703 out of reset with SDIO set to low and SEN pulled high with on-board resistor
-  delay(1); //Allow Si4703 to come out of reset
-
-  Wire.begin(); //Now that the unit is reset and I2C inteface mode, we need to begin I2C
-
-  si4703_readRegisters(); //Read the current register set
-  //si4703_registers[0x07] = 0xBC04; //Enable the oscillator, from AN230 page 9, rev 0.5 (DOES NOT WORK, wtf Silicon Labs datasheet?)
-  si4703_registers[0x07] = 0x8100; //Enable the oscillator, from AN230 page 9, rev 0.61 (works)
-  si4703_updateRegisters(); //Update
-
-  delay(500); //Wait for clock to settle - from AN230 page 9
-
-  si4703_readRegisters(); //Read the current register set
-  si4703_registers[POWERCFG] = 0x4001; //Enable the IC
-  //  si4703_registers[POWERCFG] |= (1<<SMUTE) | (1<<DMUTE); //Disable Mute, disable softmute
-  si4703_registers[SYSCONFIG1] |= (1<<RDS); //Enable RDS
-*/
+void tune(double station){
+	int channel = 0;
+	channel = (int)(5*(station - 87.5f));
+	channel &= 0x000003FF;
+	uint8_t channel_high = (channel & 0x300)>>8;
+	uint8_t channel_low = channel & 0x0FF;
+	read_registers();
+	si4703_write_registers[2] |= (1<<7 | channel_high); //set tune bit and upper channel bits
+	si4703_write_registers[3] = channel_low;
+	write_registers();
+	read_registers();
+	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
+	write_registers();
+}
 
 void delay(unsigned int ms){
 	volatile int count = 0;
