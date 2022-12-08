@@ -13,7 +13,7 @@
 *		COLS: B8-11
 *		ROWS: B4-7
 *	LCD:
-*		DATA: B0-4
+*		DATA: B0-3
 *		EN:	C10
 *		RW: C11
 *		RS: C12
@@ -210,21 +210,23 @@ void read_to_write(void){
 	
 }
 
+//write tuning to the si4703
 void tune(double station){
 	int channel = 0;
-	channel = (int)(5*(station - 87.5f));
-	channel &= 0x000003FF;
-	uint8_t channel_high = (channel & 0x300)>>8;
-	uint8_t channel_low = channel & 0x0FF;
+	channel = (int)(5*(station - 87.5f));	//conversion found in si4703
+	channel &= 0x000003FF;					//10bit wide bit mask
+	uint8_t channel_high = (channel & 0x300)>>8;	//isoate upper 2 bits
+	uint8_t channel_low = channel & 0x0FF;		//isolate lower 8 bits
 	read_registers();
 	si4703_write_registers[2] |= (1<<7 | channel_high); //set tune bit and upper channel bits
-	si4703_write_registers[3] = channel_low;
+	si4703_write_registers[3] = channel_low;		//set lower channel bits
 	write_registers();
 	read_registers();
 	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
 	write_registers();
 }
 
+//delay function using systick
 void delay(unsigned int ms){
 	volatile int count = 0;
 	Tdelay = ms;
