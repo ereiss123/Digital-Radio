@@ -85,6 +85,7 @@ int main(void){
 	si4703_init();
 	delay(510);				//should delay for 500 ms
 	LCD_Clear();			//for testing purpose
+	
 	//while(1){
 	//	read_registers();
 	//	data = keypadPoll();
@@ -137,10 +138,10 @@ void GPIO_init(void) {
 	GPIOC->OTYPER &= 0xFFFFFFFC;	//clear pins C0 and C1 then set to open-drain
 	GPIOC->OTYPER |= 0x3;		//set to open-drain mode
 	
-	GPIOC->MODER &= 0xFFFFFF00; //clear C2 and C3 mode register
-	GPIOC->MODER |= 0x00000055;	//set C2 and C3 to output.
+	GPIOC->MODER &= 0xFFFFFF00; //clear C0-C3 mode register
+	GPIOC->MODER |= 0x00000055;	//set C0-C3 to output.
 	GPIOC->OTYPER &= 0xFFFFFFF3; //set C2 and C3 to push-pull output type
-	//Need to set C4 C5 for the rest of the chip pins
+	
 }
 
 
@@ -181,11 +182,11 @@ void write_registers(void){
 
 void read_to_write(void){
 	int j;
-	for(int i = 0; i<16; i++){
-		if(i < 8)
-			j = i+8;
+	for(int i = 0; i<32; i++){
+		if(i < 16)
+			j = i+16;
 		else
-			j = i-8;
+			j = i-16;
 		si4703_write_registers[i] = si4703_read_registers[j];
 	}
 	

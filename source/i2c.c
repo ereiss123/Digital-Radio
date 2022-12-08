@@ -8,7 +8,8 @@ void I2C_init(){
 	GPIOC->AFR[0] &= 0xFFFFFF00;	//clear AFSEL1 and AFSEL0
 	GPIOC->AFR[0] |= 0x00000044;	//select AF4 mode for C0 and C1 for I2C communication
 	
-	uint32_t OwnAddress = 0x52;
+	uint32_t OwnAddress;
+	OwnAddress = 0x52;
 	RCC->APB1ENR1 |= RCC_APB1ENR1_I2C3EN;	//enable clock for I2C3
 	
 	RCC->CCIPR &= ~RCC_CCIPR_I2C3SEL;
@@ -21,7 +22,7 @@ void I2C_init(){
 	I2C3->CR1 &= ~I2C_CR1_ANFOFF; 	//0: Analog noise filter enabled
 	I2C3->CR1 &= ~I2C_CR1_DNF; 	//0000:Digital Filter Disabled
 	I2C3->CR1 |= I2C_CR1_ERRIE; 	//errors interrupt enable
-	I2C3->CR1 &= ~I2C_CR1_SMBHEN; 	//<------UNSURE ABOUT THIS; WAS I2C_CR1_SMBUS SMBus Mode: 0 = I2C mode; 1 = SMBus Mode
+	//I2C3->CR1 &= ~I2C_CR1_SMBHEN; 	//<------UNSURE ABOUT THIS; WAS I2C_CR1_SMBUS SMBus Mode: 0 = I2C mode; 1 = SMBus Mode
 	I2C3->CR1 &= ~I2C_CR1_NOSTRETCH; 	//Enable Clock stretching
 	
 	//I2C Timing Register
@@ -30,11 +31,11 @@ void I2C_init(){
 	//16MHz clock. Timing equations found in 22.2.5.5
 	I2C3->TIMINGR = 0; 			
 	I2C3->TIMINGR &= ~I2C_TIMINGR_PRESC; // Clear the prescaler 
-	I2C3->TIMINGR |= 3U << 28; // Set clock prescaler to 7 
-	I2C3->TIMINGR |= 19U; // SCLL: SCL Low period (master mode) > 4.7 us 
-	I2C3->TIMINGR |= 15U << 8; // SCLH: SCL high period (master mode) > 4.0 us 
-	I2C3->TIMINGR |= 4U << 20; // SCLDEL: Data setup time > 0.1 us 
-	I2C3->TIMINGR |= 2U << 16; // SDADEL: Data hold time > 0.6 us
+	I2C3->TIMINGR |= 7U << 28; // Set clock prescaler to 7 
+	I2C3->TIMINGR |= 49U; // SCLL: SCL Low period (master mode) > 4.7 us 
+	I2C3->TIMINGR |= 49U << 8; // SCLH: SCL high period (master mode) > 4.0 us 
+	I2C3->TIMINGR |= 14U << 20; // SCLDEL: Data setup time > 0.1 us 
+	I2C3->TIMINGR |= 15U << 16; // SDADEL: Data hold time > 0.6 us
 
 	//I2C Own Address Register
 	I2C3->OAR1 &= ~I2C_OAR1_OA1EN; 
