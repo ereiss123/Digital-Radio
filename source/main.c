@@ -4,6 +4,8 @@
 #include "si4703_constants.h"
 #include "i2c.h"
 #include "interrupts.h"
+#define UP 1
+#define DOWN 0
 /*================================================================================================
 *Author: Ashton Carlsen
 *Author: Eric Reiss
@@ -32,7 +34,7 @@
 unsigned static char si4703_read_registers[32];
 unsigned static char si4703_write_registers[32];
 unsigned static int Tdelay;
-
+int muteF = 0;
 //=================================================================================================*/
 
 //=================================================================================================
@@ -45,7 +47,8 @@ void read_to_write(void);
 void delay(unsigned int ms);
 void view_arrays(unsigned char* read, unsigned char* write);
 void tune(double station);
-
+void seek(int direction);
+void mute(void);
 //=================================================================================================
 /*
 si4703_write_registers				si4703_read_register
@@ -69,7 +72,7 @@ i register addr 					i 	register addr
 */
 
 int main(void){
-	//char data = 'z';
+	char data = 'z';
 	int i;
 	for(i = 0; i<32; i++){
 		si4703_read_registers[i] = 0;
@@ -81,25 +84,23 @@ int main(void){
 	GPIO_init();			//initialize GPIO for si4703
 	LCD_Init();				//initialize LCD
 	LCD_Clear();			//Clear the LCD
-	//keypad_init();			//initialize Keypad pins
+	keypad_init();			//initialize Keypad pins
 	LCD_DisplayString(0, (unsigned char *)"Initializing\0");	//test LCD type display
 	delay(20);
 	si4703_init();
 	delay(510);				//should delay for 500 ms
 	LCD_Clear();			//for testing purpose
-	tune(94.5f);
-	//while(1){
-	//	read_registers();
-	//	data = keypadPoll();
-	//	switch(data){
-	//		case 'A': /*tuning function*/ break;
-	//		case 'B': /*seek up function*/ break;
-	//		case 'C': /*seek down function*/ break;
-	//		case 'D': /*Mute function*/ break;
-	//		default: break;
-	//	}
-	//}
-	while(1);
+	while(1){
+		read_registers();
+		data = keypadPoll();
+		switch(data){
+			case 'A': LCD_DisplayString(0,(unsigned char*)"Tuning...\0");tune(103.9);LCD_Clear(); break;
+			case 'B': LCD_DisplayString(0,(unsigned char*)"Seek Up\0");seek(UP); LCD_Clear();break;
+			case 'C': LCD_DisplayString(0,(unsigned char*)"Seek Down\0");seek(DOWN); LCD_Clear();break;
+			case 'D': mute(); break;
+			default: break;
+		}
+	}
 }
 
 void SysTick_Init(uint32_t ticks) {
@@ -187,6 +188,10 @@ void si4703_init(void){
 	si4703_write_registers[4] |= 1<<4;
 	write_registers();
 	read_registers();
+	//Set seek to wrap around
+	si4703_write_registers[0] &= ~(1<<2);
+	write_registers();
+	read_registers();
 }
 
 void read_registers(void){
@@ -225,6 +230,33 @@ void tune(double station){
 	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
 	write_registers();
 }
+
+void seek(int direction){
+	if(direction == UP){
+		si4703_write_registers[0] |= (1<<1); //Set seek up bit
+	}else{
+		si4703_write_registers[0] &= ~(1<<1); //Set seek down bit
+	}
+		si4703_write_registers[0] |= 1; //Set seek bit
+		write_registers();
+		read_registers();
+		while((si4703_write_registers[16] & 0x40) == 0){
+			read_registers();
+		}
+}
+
+void mute(void){
+	read_registers();
+	
+	if(muteF){
+		si4703_write_registers[0] |= 1<<6;
+	}else{
+		si4703_write_registers[0] &= ~(1<<6);
+	}
+	muteF = ~muteF;
+	write_registers();
+}
+	
 
 //delay function using systick
 void delay(unsigned int ms){
