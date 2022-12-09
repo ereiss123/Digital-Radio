@@ -6,6 +6,7 @@
 #include "interrupts.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #define UP 1
 #define DOWN 0
 /*================================================================================================
@@ -57,7 +58,6 @@ void volumeDOWN(void);
 void channelUP(void);
 void channelDOWN(void);
 void update(void);
-void tuneSelect(void);
 //=================================================================================================
 /*
 si4703_write_registers				si4703_read_register
@@ -86,7 +86,7 @@ int main(void){
 	for(i = 0; i<32; i++){
 		si4703_read_registers[i] = 0;
 	}
-	
+	float frequency = 87.5f;
 	RCC->CR |= RCC_CR_HSION;	// turn on HSI
 	while((RCC->CR & RCC_CR_HSIRDY) == 0);	//wait till HSI is ready
 	SysTick_Init(16000); 	//initialize SysTick for every 1 ms
@@ -107,7 +107,6 @@ int main(void){
 		switch(data){
 			case '1': channelUP(); LCD_Clear(); break;
 			case '4': channelDOWN(); LCD_Clear(); break;
-			case 'A': tune(103.9f);LCD_Clear(); break;
 			case 'B': seek(UP); LCD_Clear();break;
 			case 'C': seek(DOWN); LCD_Clear();break;
 			case 'D': mute(); break;
@@ -207,6 +206,7 @@ void si4703_init(void){
 	read_registers();
 	//Set seek to wrap around
 	si4703_write_registers[0] &= ~(1<<2);
+	si4703_write_registers[5] |= (1<<7)|(1<<6); //set mono blend to lower db
 	write_registers();
 	read_registers();
 }
@@ -217,7 +217,7 @@ void read_registers(void){
 }
 void write_registers(void){
 	I2C_SendData(I2C3,SI4703,si4703_write_registers,32);
-	delay(10);
+	delay(1);
 }
 
 void read_to_write(void){
@@ -304,9 +304,6 @@ void volumeDOWN(void){
 		write_registers();
 }
 
-void tuneSelect(void){
-
-}
 
 void channelUP(void) {
 	unsigned char channel_high = 0;
@@ -369,11 +366,24 @@ void channelDOWN(void) {
 
 void update(void){
 	char buffer[10];
+	char vol[7];
+	int i;
+	for(i = 0; i <6; i++){
+		vol[i] = ' ';
+	}
+	int volume = 0;
 	float frequency = 0;
 	unsigned char channel_high = 0;
 	unsigned char channel_low = 0;
 	unsigned int channel = 0;
 	read_registers();		//read registers from chip
+	volume = si4703_write_registers[7];
+	volume = volume & 0xF;
+	if(~muteF){
+		sprintf(vol, "Vol:%2d\0", volume);
+	}else{
+			sprintf(vol, "Mute  \0");
+	}
 	channel_high = si4703_write_registers[18];	//get upper 2 bits from the high register
 	channel_low = si4703_write_registers[19];	//get lower byte from the low register
 	channel = channel_high | channel_low;			// isolate the 10 bits of the channel [9:0]
@@ -381,6 +391,7 @@ void update(void){
 	frequency = (((float)channel)/5)+87.5f;
 	sprintf(buffer, "%.1f", frequency);
 	LCD_DisplayString(0, (unsigned char*)buffer);
+	LCD_DisplayString(1, (unsigned char*)vol);
 }
 
 //delay function using systick

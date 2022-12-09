@@ -16,7 +16,7 @@ GPIOC: LCD
 
 void delay_ms(unsigned int ms) {
 	volatile unsigned int i;
-	for(i = 0; i < 1200*ms; i++);
+	for(i = 0; i < 800*ms; i++);
 	return;
 }
 
@@ -70,10 +70,10 @@ void LCD_Init(void){
 	delay_ms(1);
 	LCD_WriteCom(0x0c);	//turn off cursor and blink display on
 	delay_ms(1);
-	LCD_WriteCom(0x01);	//clear
-	delay_ms(2);
-	LCD_WriteCom(0x06);	//set to entry mode
+	LCD_WriteCom(0x06);	//clear
 	delay_ms(1);
+	LCD_WriteCom(0x01);	//set to entry mode
+	delay_ms(10);
 }
 
 void LCD_Clear(void){
