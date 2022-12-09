@@ -49,6 +49,8 @@ void view_arrays(unsigned char* read, unsigned char* write);
 void tune(double station);
 void seek(int direction);
 void mute(void);
+void volumeUP(void);
+void volumeDOWN(void);
 //=================================================================================================
 /*
 si4703_write_registers				si4703_read_register
@@ -94,10 +96,12 @@ int main(void){
 		read_registers();
 		data = keypadPoll();
 		switch(data){
-			case 'A': LCD_DisplayString(0,(unsigned char*)"Tuning...\0");tune(103.9);LCD_Clear(); break;
+			case 'A': LCD_DisplayString(0,(unsigned char*)"Tuning...\0");tune(103.9f);LCD_Clear(); break;
 			case 'B': LCD_DisplayString(0,(unsigned char*)"Seek Up\0");seek(UP); LCD_Clear();break;
 			case 'C': LCD_DisplayString(0,(unsigned char*)"Seek Down\0");seek(DOWN); LCD_Clear();break;
 			case 'D': mute(); break;
+			case '*': volumeDOWN(); break;
+			case '#': volumeUP(); break;
 			default: break;
 		}
 	}
@@ -169,7 +173,7 @@ void si4703_init(void){
 	si4703_write_registers[10] |= 1<<7;
 	write_registers();
 	//Disable mute and enable chip
-	si4703_write_registers[0] |= (1<<6 | 1<<7);
+	si4703_write_registers[0] |= (1<<6);
 	si4703_write_registers[1] |= 1;
 	si4703_write_registers[1] &= ~(1<<6);
 	write_registers();
@@ -179,9 +183,9 @@ void si4703_init(void){
 	read_registers();
 //	view_arrays(si4703_read_registers,si4703_write_registers);
 	//Set the band and volume
-	si4703_write_registers[6] = 28; //Seek threshold of 28
+	si4703_write_registers[6] = 1U; //Seek threshold of 28
 	si4703_write_registers[7] &= 0x0000; //Band 00 is USA
-	si4703_write_registers[7] |= 0x7;
+	si4703_write_registers[7] |= 0xA;
 	write_registers();
 	read_registers();
 	//Enable RDS
@@ -227,6 +231,9 @@ void tune(double station){
 	si4703_write_registers[3] = channel_low;		//set lower channel bits
 	write_registers();
 	read_registers();
+	while(((si4703_write_registers[16] & 0x40)>>6) == 0){
+			read_registers();
+		}
 	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
 	write_registers();
 }
@@ -237,12 +244,14 @@ void seek(int direction){
 	}else{
 		si4703_write_registers[0] &= ~(1<<1); //Set seek down bit
 	}
-		si4703_write_registers[0] |= 1; //Set seek bit
+		si4703_write_registers[0] |= 1U; //Set seek bit
 		write_registers();
 		read_registers();
-		while((si4703_write_registers[16] & 0x40) == 0){
+		while(((si4703_write_registers[16] & 0x40)>>6) == 0){
 			read_registers();
 		}
+		si4703_write_registers[0] &= ~1U;	//clear seek bit
+		write_registers();
 }
 
 void mute(void){
@@ -256,7 +265,30 @@ void mute(void){
 	muteF = ~muteF;
 	write_registers();
 }
+
+void volumeUP(void){
+		unsigned char volume;
+		read_registers();
+		volume = si4703_write_registers[7] & 0x0F;
+		if(volume < 15){
+				volume = volume+1;
+		}
+		si4703_write_registers[7] &= 0xF0;
+		si4703_write_registers[7] |= volume;
+		write_registers();
+}
 	
+void volumeDOWN(void){
+		unsigned char volume;
+		read_registers();
+		volume = si4703_write_registers[7] & 0x0F;
+		if(volume > 0){
+				volume = volume-1;
+		}
+		si4703_write_registers[7] &= 0xF0;
+		si4703_write_registers[7] |= volume;
+		write_registers();
+}
 
 //delay function using systick
 void delay(unsigned int ms){
