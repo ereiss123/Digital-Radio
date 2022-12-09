@@ -35,7 +35,8 @@ unsigned static char si4703_read_registers[32];
 unsigned static char si4703_write_registers[32];
 unsigned static int Tdelay;
 unsigned static int Gchannel = 0;
-static char* freq;
+static char* freqString;
+static float freq;
 int muteF = 0;
 //=================================================================================================*/
 
@@ -53,6 +54,8 @@ void seek(int direction);
 void mute(void);
 void volumeUP(void);
 void volumeDOWN(void);
+void channelUP(void);
+void channelDOWN(void);
 void tuneSelect(void);
 //=================================================================================================
 /*
@@ -228,6 +231,7 @@ void read_to_write(void){
 
 //write tuning to the si4703
 void tune(double station){
+	freq = station;
 	unsigned int channel = 0;
 	channel = (int)(5*(station - 87.5f));	//conversion found in si4703
 	channel &= 0x000003FF;					//10bit wide bit mask
@@ -300,6 +304,29 @@ void volumeDOWN(void){
 
 void tuneSelect(void){
 
+}
+
+void channelUP(void) {
+	unsigned int channel = Gchannel;
+	if(channel < 102){
+		channel = channel +1;
+	}
+	Gchannel = channel;
+	float station = ((float)(channel)*0.2f)+87.5f;
+	
+	tune(station);
+	freq = station;
+}
+
+void channelDOWN(void) {
+	unsigned int channel = Gchannel;
+	if(channel > 0){
+		channel = channel -1;
+	}
+	Gchannel = channel;
+	float station = ((float)(channel)*0.2f)+87.5f;
+	tune(station);
+	freq = station;
 }
 
 //delay function using systick
