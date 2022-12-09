@@ -34,6 +34,8 @@
 unsigned static char si4703_read_registers[32];
 unsigned static char si4703_write_registers[32];
 unsigned static int Tdelay;
+unsigned static int Gchannel = 0;
+static char* freq;
 int muteF = 0;
 //=================================================================================================*/
 
@@ -51,6 +53,7 @@ void seek(int direction);
 void mute(void);
 void volumeUP(void);
 void volumeDOWN(void);
+void tuneSelect(void);
 //=================================================================================================
 /*
 si4703_write_registers				si4703_read_register
@@ -74,6 +77,7 @@ i register addr 					i 	register addr
 */
 
 int main(void){
+	freq = '\0';
 	char data = 'z';
 	int i;
 	for(i = 0; i<32; i++){
@@ -85,7 +89,9 @@ int main(void){
 	SysTick_Init(16000); 	//initialize SysTick for every 1 ms
 	GPIO_init();			//initialize GPIO for si4703
 	LCD_Init();				//initialize LCD
+	delay(5);
 	LCD_Clear();			//Clear the LCD
+	delay(5);
 	keypad_init();			//initialize Keypad pins
 	LCD_DisplayString(0, (unsigned char *)"Initializing\0");	//test LCD type display
 	delay(20);
@@ -162,7 +168,7 @@ void si4703_init(void){
 	GPIOC->ODR |= GPIO_ODR_OD0; //Ensure SCLK is high until first start bit is sent
 	GPIOC->ODR &= ~GPIO_ODR_OD1;//ensure SDIO is low
 	//GPIOC->ODR |= GPIO_ODR_OD2; //Ensure ~SEN is high
-	delay(1);
+	delay(10);
 	GPIOC->ODR |= GPIO_ODR_OD3; //Activate rst
 	//delay(110);
 	//GPIOC->ODR &= ~GPIO_ODR_OD3; //set ~rst high
@@ -172,6 +178,7 @@ void si4703_init(void){
 	//Turn on crystal oscillator
 	si4703_write_registers[10] |= 1<<7;
 	write_registers();
+	delay(510);
 	//Disable mute and enable chip
 	si4703_write_registers[0] |= (1<<6);
 	si4703_write_registers[1] |= 1;
@@ -204,7 +211,7 @@ void read_registers(void){
 }
 void write_registers(void){
 	I2C_SendData(I2C3,SI4703,si4703_write_registers,32);
-	delay(510);
+	delay(10);
 }
 
 void read_to_write(void){
@@ -221,7 +228,7 @@ void read_to_write(void){
 
 //write tuning to the si4703
 void tune(double station){
-	int channel = 0;
+	unsigned int channel = 0;
 	channel = (int)(5*(station - 87.5f));	//conversion found in si4703
 	channel &= 0x000003FF;					//10bit wide bit mask
 	uint8_t channel_high = (channel & 0x300)>>8;	//isoate upper 2 bits
@@ -236,6 +243,7 @@ void tune(double station){
 		}
 	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
 	write_registers();
+	Gchannel = channel;
 }
 
 void seek(int direction){
@@ -288,6 +296,10 @@ void volumeDOWN(void){
 		si4703_write_registers[7] &= 0xF0;
 		si4703_write_registers[7] |= volume;
 		write_registers();
+}
+
+void tuneSelect(void){
+
 }
 
 //delay function using systick
