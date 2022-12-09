@@ -34,7 +34,7 @@
 unsigned static char si4703_read_registers[32];
 unsigned static char si4703_write_registers[32];
 unsigned static int Tdelay;
-unsigned static int Gchannel = 0;
+unsigned static int Gchannel;
 static char* freqString;
 static float freq;
 int muteF = 0;
@@ -105,6 +105,8 @@ int main(void){
 		read_registers();
 		data = keypadPoll();
 		switch(data){
+			case '1': LCD_DisplayString(0, (unsigned char*)"Channel UP\0"); channelUP(); LCD_Clear(); break;
+			case '2': LCD_DisplayString(0,(unsigned char*)"Channel DOWN\0"); channelDOWN(); LCD_Clear(); break;
 			case 'A': LCD_DisplayString(0,(unsigned char*)"Tuning...\0");tune(103.9f);LCD_Clear(); break;
 			case 'B': LCD_DisplayString(0,(unsigned char*)"Seek Up\0");seek(UP); LCD_Clear();break;
 			case 'C': LCD_DisplayString(0,(unsigned char*)"Seek Down\0");seek(DOWN); LCD_Clear();break;
@@ -233,7 +235,7 @@ void read_to_write(void){
 void tune(double station){
 	freq = station;
 	unsigned int channel = 0;
-	channel = (int)(5*(station - 87.5f));	//conversion found in si4703
+	channel = (unsigned int)(5*(station - 87.5f));	//conversion found in si4703
 	channel &= 0x000003FF;					//10bit wide bit mask
 	uint8_t channel_high = (channel & 0x300)>>8;	//isoate upper 2 bits
 	uint8_t channel_low = channel & 0x0FF;		//isolate lower 8 bits
@@ -308,7 +310,7 @@ void tuneSelect(void){
 
 void channelUP(void) {
 	unsigned int channel = Gchannel;
-	if(channel < 102){
+	if(channel < 102U){
 		channel = channel +1;
 	}
 	Gchannel = channel;
