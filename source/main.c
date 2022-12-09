@@ -4,6 +4,8 @@
 #include "si4703_constants.h"
 #include "i2c.h"
 #include "interrupts.h"
+#include <string.h>
+#include <stdio.h>
 #define UP 1
 #define DOWN 0
 /*================================================================================================
@@ -34,10 +36,8 @@
 unsigned static char si4703_read_registers[32];
 unsigned static char si4703_write_registers[32];
 unsigned static int Tdelay;
-unsigned static int Gchannel;
 static char* freqString;
-static float freq;
-int muteF = 0;
+static int muteF = 0;
 //=================================================================================================*/
 
 //=================================================================================================
@@ -49,13 +49,14 @@ void write_registers(void);
 void read_to_write(void);
 void delay(unsigned int ms);
 void view_arrays(unsigned char* read, unsigned char* write);
-void tune(double station);
+void tune(float station);
 void seek(int direction);
 void mute(void);
 void volumeUP(void);
 void volumeDOWN(void);
 void channelUP(void);
 void channelDOWN(void);
+void update(void);
 void tuneSelect(void);
 //=================================================================================================
 /*
@@ -80,7 +81,6 @@ i register addr 					i 	register addr
 */
 
 int main(void){
-	freq = '\0';
 	char data = 'z';
 	int i;
 	for(i = 0; i<32; i++){
@@ -105,16 +105,17 @@ int main(void){
 		read_registers();
 		data = keypadPoll();
 		switch(data){
-			case '1': LCD_DisplayString(0, (unsigned char*)"Channel UP\0"); channelUP(); LCD_Clear(); break;
-			case '2': LCD_DisplayString(0,(unsigned char*)"Channel DOWN\0"); channelDOWN(); LCD_Clear(); break;
-			case 'A': LCD_DisplayString(0,(unsigned char*)"Tuning...\0");tune(103.9f);LCD_Clear(); break;
-			case 'B': LCD_DisplayString(0,(unsigned char*)"Seek Up\0");seek(UP); LCD_Clear();break;
-			case 'C': LCD_DisplayString(0,(unsigned char*)"Seek Down\0");seek(DOWN); LCD_Clear();break;
+			case '1': channelUP(); LCD_Clear(); break;
+			case '4': channelDOWN(); LCD_Clear(); break;
+			case 'A': tune(103.9f);LCD_Clear(); break;
+			case 'B': seek(UP); LCD_Clear();break;
+			case 'C': seek(DOWN); LCD_Clear();break;
 			case 'D': mute(); break;
 			case '*': volumeDOWN(); break;
 			case '#': volumeUP(); break;
 			default: break;
 		}
+		update();
 	}
 }
 
@@ -232,13 +233,12 @@ void read_to_write(void){
 }
 
 //write tuning to the si4703
-void tune(double station){
-	freq = station;
+void tune(float station){
 	unsigned int channel = 0;
 	channel = (unsigned int)(5*(station - 87.5f));	//conversion found in si4703
 	channel &= 0x000003FF;					//10bit wide bit mask
-	uint8_t channel_high = (channel & 0x300)>>8;	//isoate upper 2 bits
-	uint8_t channel_low = channel & 0x0FF;		//isolate lower 8 bits
+	char channel_high = (channel & 0x300)>>8;	//isoate upper 2 bits
+	char channel_low = channel & 0x0FF;		//isolate lower 8 bits
 	read_registers();
 	si4703_write_registers[2] |= (1<<7 | channel_high); //set tune bit and upper channel bits
 	si4703_write_registers[3] = channel_low;		//set lower channel bits
@@ -249,7 +249,6 @@ void tune(double station){
 		}
 	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
 	write_registers();
-	Gchannel = channel;
 }
 
 void seek(int direction){
@@ -263,6 +262,7 @@ void seek(int direction){
 		read_registers();
 		while(((si4703_write_registers[16] & 0x40)>>6) == 0){
 			read_registers();
+			update();
 		}
 		si4703_write_registers[0] &= ~1U;	//clear seek bit
 		write_registers();
@@ -309,26 +309,78 @@ void tuneSelect(void){
 }
 
 void channelUP(void) {
-	unsigned int channel = Gchannel;
-	if(channel < 102U){
-		channel = channel +1;
+	unsigned char channel_high = 0;
+	unsigned char channel_low = 0;
+	unsigned int channel = 0;
+	read_registers();		//read registers from chip
+	channel_high = si4703_write_registers[18];	//get upper 2 bits from the high register
+	channel_low = si4703_write_registers[19];	//get lower byte from the low register
+	channel = channel_high | channel_low;			// isolate the 10 bits of the channel [9:0]
+	channel = channel & 0x3FF;
+	if(channel < 102) {
+		channel = channel + 1;
+	} else {
+		channel = 0;
 	}
-	Gchannel = channel;
-	float station = ((float)(channel)*0.2f)+87.5f;
-	
-	tune(station);
-	freq = station;
+	channel_high =  (channel & 0x300)>>8;
+	channel_low = (channel & 0xFF);
+	si4703_write_registers[2] &= 0xC;	//clear lower 2 bits of 3h register
+	si4703_write_registers[2] |= (1<<7) |  channel_high;	//set tune bit and upper channel bit
+	si4703_write_registers[3] &= 0;		//clear byte in 3L register
+	si4703_write_registers[3] |= channel_low;	//set lower channel bits
+	write_registers();
+	read_registers();
+	while(((si4703_write_registers[16] & 0x40)>>6) == 0){
+			read_registers();
+		}
+	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
+	write_registers();
 }
 
 void channelDOWN(void) {
-	unsigned int channel = Gchannel;
-	if(channel > 0){
-		channel = channel -1;
+	unsigned char channel_high = 0;
+	unsigned char channel_low = 0;
+	unsigned int channel = 0;
+	read_registers();		//read registers from chip
+	channel_high = si4703_write_registers[18];	//get upper 2 bits from the high register
+	channel_low = si4703_write_registers[19];	//get lower byte from the low register
+	channel = channel_high | channel_low;			// isolate the 10 bits of the channel [9:0]
+	channel = channel & 0x3FF;
+	if(channel > 0) {
+		channel = channel - 1;
+	} else {
+		channel = 102;
 	}
-	Gchannel = channel;
-	float station = ((float)(channel)*0.2f)+87.5f;
-	tune(station);
-	freq = station;
+	channel_high =  (channel & 0x300)>>8;
+	channel_low = (channel & 0xFF);
+	si4703_write_registers[2] &= 0xC;	//clear lower 2 bits of 3h register
+	si4703_write_registers[2] |= (1<<7) |channel_high;	//set tune bit and upper channel bit
+	si4703_write_registers[3] &= 0;		//clear byte in 3L register
+	si4703_write_registers[3] |= channel_low;	//set lower channel bits
+	write_registers();
+	read_registers();
+	while(((si4703_write_registers[16] & 0x40)>>6) == 0){
+			read_registers();
+		}
+	si4703_write_registers[2] &= ~(1<<7); //turn off tune bit
+	write_registers();
+}
+
+
+void update(void){
+	char buffer[10];
+	float frequency = 0;
+	unsigned char channel_high = 0;
+	unsigned char channel_low = 0;
+	unsigned int channel = 0;
+	read_registers();		//read registers from chip
+	channel_high = si4703_write_registers[18];	//get upper 2 bits from the high register
+	channel_low = si4703_write_registers[19];	//get lower byte from the low register
+	channel = channel_high | channel_low;			// isolate the 10 bits of the channel [9:0]
+	channel = channel & 0x3FF;
+	frequency = (((float)channel)/5)+87.5f;
+	sprintf(buffer, "%.1f", frequency);
+	LCD_DisplayString(0, (unsigned char*)buffer);
 }
 
 //delay function using systick

@@ -16,7 +16,7 @@ GPIOC: LCD
 
 void delay_ms(unsigned int ms) {
 	volatile unsigned int i;
-	for(i = 0; i < 800*ms; i++);
+	for(i = 0; i < 1200*ms; i++);
 	return;
 }
 
