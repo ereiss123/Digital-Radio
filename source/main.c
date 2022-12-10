@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #define UP 1
 #define DOWN 0
+
 /*================================================================================================
 *Author: Ashton Carlsen
 *Author: Eric Reiss
@@ -27,8 +28,7 @@
 *		SCL: C0 Alternate Function 4- I2C3
 *		SEN: C2
 *		RST: C3
-*		GPIO1: C4		Might not need	Maybe hookup LED's to indicate seek finish or tune finish
-*		GPIO2: C5		Might not need
+*		GPIO2: LED output from chip to indicate power
 *
 ===================================================================================================*/
 
@@ -49,7 +49,6 @@ void read_registers(void);
 void write_registers(void);
 void read_to_write(void);
 void delay(unsigned int ms);
-void view_arrays(unsigned char* read, unsigned char* write);
 void tune(float station);
 void seek(int direction);
 void mute(void);
@@ -60,24 +59,24 @@ void channelDOWN(void);
 void update(void);
 //=================================================================================================
 /*
-si4703_write_registers				si4703_read_register
-i register addr 					i 	register addr
-0 	0x02							0	0X0A
-1 	0x03							1	0x0B
-2 	0x04							2	0x0C
-3 	0x05							3	0x0D
-4 	0x06 							4	0x0E
-5 	0x07							5	0x0F
-6 	0x08							6	0x00
-7 	0x09							7	0x01
-8 	0x0A							8	0x02
-9 	0x0B							9	0x03
-10 	0x0C							10	0x04
-11 	0x0D							11	0x05
-12 	0x0E							12	0x06
-13 	0x0F							13	0x07
-14 	0x00							14	0x08
-15 	0x01							15	0x09
+si4703_write_registers		si4703_read_register
+i 	register addr 				i 	register addr
+0 	0x02									0		0X0A
+1 	0x03									1		0x0B
+2 	0x04									2		0x0C
+3 	0x05									3		0x0D
+4 	0x06 									4		0x0E
+5 	0x07									5		0x0F
+6 	0x08									6		0x00
+7 	0x09									7		0x01
+8 	0x0A									8		0x02
+9 	0x0B									9		0x03
+10 	0x0C									10	0x04
+11 	0x0D									11	0x05
+12 	0x0E									12	0x06
+13 	0x0F									13	0x07
+14 	0x00									14	0x08
+15 	0x01									15	0x09
 */
 
 int main(void){
@@ -103,8 +102,8 @@ int main(void){
 	LCD_Clear();			//for testing purpose
 	while(1){
 		read_registers();
-		data = keypadPoll();
-		switch(data){
+		data = keypadPoll();		//check for button press
+		switch(data){			//call designated function based on what key was pushed
 			case '1': channelUP(); LCD_Clear(); break;
 			case '4': channelDOWN(); LCD_Clear(); break;
 			case 'B': seek(UP); LCD_Clear();break;
@@ -114,11 +113,11 @@ int main(void){
 			case '#': volumeUP(); break;
 			default: break;
 		}
-		update();
+		update();		//update frequency and volume to LCD
 	}
 }
 
-void SysTick_Init(uint32_t ticks) {
+void SysTick_Init(uint32_t ticks) {		//initialize systick interrupt
 	SysTick->CTRL = 0;
 	SysTick->LOAD = ticks -1;
 	NVIC_SetPriority(SysTick_IRQn, (1<<__NVIC_PRIO_BITS)-1);
@@ -126,16 +125,8 @@ void SysTick_Init(uint32_t ticks) {
 	SysTick->CTRL |= (SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk) ;
 }
 
-void SysTick_Handler(void) {
+void SysTick_Handler(void) {	//use interrupt to decrement a time delay. Gives very precise timing
 	Tdelay--;
-}
-
-
-
-void view_arrays(unsigned char* read, unsigned char* write){
-	volatile unsigned int zero = 0;
-	*read |= zero;
-	*write |= zero;
 }
 
 
@@ -212,19 +203,19 @@ void si4703_init(void){
 }
 
 void read_registers(void){
-	I2C_ReceiveData(I2C3,SI4703,si4703_read_registers,32);
-	read_to_write();
+	I2C_ReceiveData(I2C3,SI4703,si4703_read_registers,32);	//Use I2C to read from the si4703 chip and store in a 32 byte buffer
+	read_to_write();										//copy the read registers into our writing registers
 }
 void write_registers(void){
-	I2C_SendData(I2C3,SI4703,si4703_write_registers,32);
+	I2C_SendData(I2C3,SI4703,si4703_write_registers,32);	//write the write registers using I2C
 	delay(1);
 }
 
 void read_to_write(void){
 	int j;
-	for(int i = 0; i<32; i++){
+	for(int i = 0; i<32; i++){		//copy read registers to write registers making sure the indexing is correct
 		if(i < 16)
-			j = i+16;
+			j = i+16;				//see diagram above of read vs write registers
 		else
 			j = i-16;
 		si4703_write_registers[i] = si4703_read_registers[j];
@@ -260,18 +251,18 @@ void seek(int direction){
 		si4703_write_registers[0] |= 1U; //Set seek bit
 		write_registers();
 		read_registers();
-		while(((si4703_write_registers[16] & 0x40)>>6) == 0){
-			read_registers();
-			update();
+		while(((si4703_write_registers[16] & 0x40)>>6) == 0){	//wait until seek is complete
+			read_registers();		//read from si4703
+			update();				//update LCD to show current frequency. Gives scanning effect to LCD
 		}
 		si4703_write_registers[0] &= ~1U;	//clear seek bit
-		write_registers();
+		write_registers();	
 }
 
 void mute(void){
 	read_registers();
 	
-	if(muteF){
+	if(muteF){	//toggle the mute bit
 		si4703_write_registers[0] |= 1<<6;
 	}else{
 		si4703_write_registers[0] &= ~(1<<6);
@@ -283,24 +274,24 @@ void mute(void){
 void volumeUP(void){
 		unsigned char volume;
 		read_registers();
-		volume = si4703_write_registers[7] & 0x0F;
+		volume = si4703_write_registers[7] & 0x0F;		//get lower nibble of the register to find volume
 		if(volume < 15){
-				volume = volume+1;
+				volume = volume+1;						//if not at max volume, then increment by 1
 		}
 		si4703_write_registers[7] &= 0xF0;
-		si4703_write_registers[7] |= volume;
+		si4703_write_registers[7] |= volume;		//write the new volume to the si4703
 		write_registers();
 }
 	
 void volumeDOWN(void){
 		unsigned char volume;
 		read_registers();
-		volume = si4703_write_registers[7] & 0x0F;
+		volume = si4703_write_registers[7] & 0x0F;		//get lower nibble of the register to find volume
 		if(volume > 0){
-				volume = volume-1;
+				volume = volume-1;				//if not already at 0, then decrement by 1
 		}
 		si4703_write_registers[7] &= 0xF0;
-		si4703_write_registers[7] |= volume;
+		si4703_write_registers[7] |= volume;		//write the new volume to the si4703
 		write_registers();
 }
 
@@ -365,10 +356,10 @@ void channelDOWN(void) {
 
 
 void update(void){
-	char buffer[10];
-	char vol[7];
+	char buffer[10];		//LCD string
+	char vol[7];			//volume string
 	int i;
-	for(i = 0; i <6; i++){
+	for(i = 0; i <6; i++){		//initialize the volume to all spaces
 		vol[i] = ' ';
 	}
 	int volume = 0;
@@ -378,11 +369,11 @@ void update(void){
 	unsigned int channel = 0;
 	read_registers();		//read registers from chip
 	volume = si4703_write_registers[7];
-	volume = volume & 0xF;
+	volume = volume & 0xF;				//read volume from lower nibble of the register
 	if(~muteF){
-		sprintf(vol, "Vol:%2d\0", volume);
+		sprintf(vol, "Vol:%2d\0", volume);		//if not muted	create a string with the volume
 	}else{
-			sprintf(vol, "Mute  \0");
+			sprintf(vol, "Mute  \0");			//else string is a mute string
 	}
 	channel_high = si4703_write_registers[18];	//get upper 2 bits from the high register
 	channel_low = si4703_write_registers[19];	//get lower byte from the low register
@@ -390,8 +381,8 @@ void update(void){
 	channel = channel & 0x3FF;
 	frequency = (((float)channel)/5)+87.5f;
 	sprintf(buffer, "%.1f", frequency);
-	LCD_DisplayString(0, (unsigned char*)buffer);
-	LCD_DisplayString(1, (unsigned char*)vol);
+	LCD_DisplayString(0, (unsigned char*)buffer);	//display the frequency to top of LCD 
+	LCD_DisplayString(1, (unsigned char*)vol);		//display volume to lower part of LCD
 }
 
 //delay function using systick
