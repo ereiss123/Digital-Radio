@@ -104,12 +104,12 @@ int main(void){
 		read_registers();
 		data = keypadPoll();		//check for button press
 		switch(data){			//call designated function based on what key was pushed
-			case '1': channelUP(); LCD_Clear(); break;
-			case '4': channelDOWN(); LCD_Clear(); break;
-			case 'B': seek(UP); LCD_Clear();break;
-			case 'C': seek(DOWN); LCD_Clear();break;
-			case 'D': mute(); break;
-			case '*': volumeDOWN(); break;
+			case 'A': channelUP(); LCD_Clear(); break;
+			case 'B': channelDOWN(); LCD_Clear(); break;
+			case 'C': seek(UP); LCD_Clear();break;
+			case 'D': seek(DOWN); LCD_Clear();break;
+			case '*': mute(); break;
+			case '0': volumeDOWN(); break;
 			case '#': volumeUP(); break;
 			default: break;
 		}
