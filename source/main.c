@@ -163,18 +163,17 @@ void si4703_init(void){
 	GPIOC->ODR &= ~GPIO_ODR_OD3; //Set ~rst low
 	GPIOC->ODR |= GPIO_ODR_OD0; //Ensure SCLK is high until first start bit is sent
 	GPIOC->ODR &= ~GPIO_ODR_OD1;//ensure SDIO is low
-	//GPIOC->ODR |= GPIO_ODR_OD2; //Ensure ~SEN is high
 	delay(10);
 	GPIOC->ODR |= GPIO_ODR_OD3; //Activate rst
-	//delay(110);
-	//GPIOC->ODR &= ~GPIO_ODR_OD3; //set ~rst high
 	delay(110);
 	I2C_init();
 	read_registers();
+
 	//Turn on crystal oscillator
 	si4703_write_registers[10] |= 1<<7;
 	write_registers();
 	delay(510);
+
 	//Disable mute and enable chip
 	si4703_write_registers[0] |= (1<<6);
 	si4703_write_registers[1] |= 1;
@@ -184,17 +183,19 @@ void si4703_init(void){
 	si4703_write_registers[5] |= 0xC;
 	write_registers();
 	read_registers();
-//	view_arrays(si4703_read_registers,si4703_write_registers);
+
 	//Set the band and volume
 	si4703_write_registers[6] = 1U; //Seek threshold of 28
 	si4703_write_registers[7] &= 0x0000; //Band 00 is USA
 	si4703_write_registers[7] |= 0xA;
 	write_registers();
 	read_registers();
+
 	//Enable RDS
 	si4703_write_registers[4] |= 1<<4;
 	write_registers();
 	read_registers();
+	
 	//Set seek to wrap around
 	si4703_write_registers[0] &= ~(1<<2);
 	si4703_write_registers[5] |= (1<<7)|(1<<6); //set mono blend to lower db
